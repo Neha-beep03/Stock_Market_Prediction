@@ -4,77 +4,95 @@ import yfinance as yf
 from keras.models import load_model
 import streamlit as st
 import matplotlib.pyplot as plt
+from sklearn.preprocessing import MinMaxScaler
 
-model = load_model("C:\Stock Market Prediction\Stock Predictions Model.keras")
+# Load model (cached)
+model = load_model("Stock_Predictions_Model.h5")
+
 
 st.header('Stock Market Predictor')
 
-stock =st.text_input('Enter Stock Symbol', 'GOOG')
+# Input
+stock = st.text_input('Enter Stock Symbol', 'GOOG')
 start = '2016-01-01'
 end = '2026-04-01'
 
-data = yf.download(stock, start ,end)
+# Fetch data
+data = yf.download(stock, start, end)
+
+if data.empty:
+    st.error(f"No data found for '{stock}'. This is likely due to Yahoo Finance blocking the request or an invalid ticker.")
+    st.stop()
 
 st.subheader('Stock Data')
 st.write(data)
 
-data_train = pd.DataFrame(data.Close[0: int(len(data)*0.80)])
-data_test = pd.DataFrame(data.Close[int(len(data)*0.80): len(data)])
+# Train-test split
+data_train = pd.DataFrame(data.Close[0:int(len(data)*0.80)])
+data_test = pd.DataFrame(data.Close[int(len(data)*0.80):])
 
-from sklearn.preprocessing import MinMaxScaler
+# Scaling
 scaler = MinMaxScaler(feature_range=(0,1))
 
-pas_100_days = data_train.tail(100)
-data_test = pd.concat([pas_100_days, data_test], ignore_index=True)
+past_100_days = data_train.tail(100)
+data_test = pd.concat([past_100_days, data_test], ignore_index=True)
 data_test_scale = scaler.fit_transform(data_test)
 
-st.subheader('Price vs MA50')
+# Moving Averages
 ma_50_days = data.Close.rolling(50).mean()
+ma_100_days = data.Close.rolling(100).mean()
+ma_200_days = data.Close.rolling(200).mean()
+
+# Graph 1
+st.subheader('Stock Price vs MA50')
 fig1 = plt.figure(figsize=(8,6))
-plt.plot(ma_50_days, 'r')
-plt.plot(data.Close, 'g')
-plt.show()
+plt.plot(ma_50_days, 'r', label='MA 50')
+plt.plot(data.Close, 'g', label='Closing Price')
+plt.legend()
 st.pyplot(fig1)
 
-st.subheader('Price vs MA50 vs MA100')
-ma_100_days = data.Close.rolling(100).mean()
+# Graph 2
+st.subheader('Stock Price vs MA50 vs MA100')
 fig2 = plt.figure(figsize=(8,6))
-plt.plot(ma_50_days, 'r')
-plt.plot(ma_100_days, 'b')
-plt.plot(data.Close, 'g')
-plt.show()
+plt.plot(ma_50_days, 'r', label='MA 50')
+plt.plot(ma_100_days, 'b', label='MA 100')
+plt.plot(data.Close, 'g', label='Closing Price')
+plt.legend()
 st.pyplot(fig2)
 
-st.subheader('Price vs MA100 vs MA200')
-ma_200_days = data.Close.rolling(200).mean()
+# Graph 3
+st.subheader('Stock Price vs MA100 vs MA200')
 fig3 = plt.figure(figsize=(8,6))
-plt.plot(ma_100_days, 'r')
-plt.plot(ma_200_days, 'b')
-plt.plot(data.Close, 'g')
-plt.show()
+plt.plot(ma_100_days, 'r', label='MA 100')
+plt.plot(ma_200_days, 'b', label='MA 200')
+plt.plot(data.Close, 'g', label='Closing Price')
+plt.legend()
 st.pyplot(fig3)
 
+# Prepare data
 x = []
 y = []
 
 for i in range(100, data_test_scale.shape[0]):
     x.append(data_test_scale[i-100:i])
-    y.append(data_test_scale[i,0])
+    y.append(data_test_scale[i, 0])
 
-x,y = np.array(x), np.array(y)
+x, y = np.array(x), np.array(y)
 
+# Predict
 predict = model.predict(x)
 
-scale = 1/scaler.scale_
-
+# Reverse scaling
+scale = 1 / scaler.scale_
 predict = predict * scale
 y = y * scale
 
+# Final graph
 st.subheader('Original Price vs Predicted Price')
 fig4 = plt.figure(figsize=(8,6))
-plt.plot(predict, 'r', label='Original Price')
-plt.plot(y, 'g', label = 'Predicted Price')
+plt.plot(y, 'g', label='Original Price')
+plt.plot(predict, 'r', label='Predicted Price')
 plt.xlabel('Time')
 plt.ylabel('Price')
-plt.show()
+plt.legend()
 st.pyplot(fig4)
