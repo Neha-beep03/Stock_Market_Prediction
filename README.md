@@ -7,7 +7,7 @@ This project is a **beginner-friendly stock market prediction system** built usi
 ## Features
 
 *  Fetches real-time stock data using `yfinance`
-*  Uses a trained **Keras LSTM model** for prediction
+*  Uses a trained **LSTM model** for prediction
 *  Visualizes:
 
   * Price vs MA50
@@ -25,7 +25,7 @@ This project is a **beginner-friendly stock market prediction system** built usi
 * Pandas
 * Matplotlib
 * Scikit-learn
-* TensorFlow / Keras
+* TensorFlow
 * yFinance API
 
 ---
@@ -35,7 +35,7 @@ This project is a **beginner-friendly stock market prediction system** built usi
 ```
 ├── app.py
 ├── Stock_Market_Prediction_Model_Creation.ipynb
-├── Stock Predictions Model.keras
+├── Stock Predictions Model.h5
 ├── README.md
 ```
 
@@ -85,7 +85,7 @@ Enter Stock Symbol (e.g., GOOG, AAPL):
 ## Model Details
 
 * Model Type: LSTM Neural Network
-* Framework: TensorFlow / Keras
+* Framework: TensorFlow
 * Input: Last 100 days stock data
 * Output: Predicted stock price
 
@@ -97,4 +97,4 @@ This project is for **educational purposes only**.
 Stock market predictions are not guaranteed and should not be used for real financial decisions.
 
 
-Navya Gupta
+Neha Yadav
